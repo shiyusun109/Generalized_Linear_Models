@@ -1,0 +1,1055 @@
+---
+title: \textbf{Analysing Diabetes of Pima Indian Women Using Logistic Regression Model}
+author: 
+  -  Shiyu Sun (UCID-30220704)
+  -  Hyojin Kim (UCID-30222693)
+  -  Rukhsana Rashid Binti (UCID-30179306) 
+date : "`r format(Sys.time(), '%Y-%m-%d')`"
+output:
+  pdf_document:
+  html_document: default
+  html_notebook: default
+---
+
+\newpage
+```{=latex}
+\tableofcontents
+```
+\newpage
+
+
+
+## 1 Introduction
+
+
+### 1.1 Background
+
+
+Diabetes is a chronic disease that occurs either when the pancreas does not produce enough insulin or when the body cannot effectively use the insulin it produces. Diabetes is one of the most common human diseases and has become a significant public health concern worldwide. Over time, diabetes can damage blood vessels in the heart, eyes, kidneys and nerves. People with diabetes have a higher risk of health problems including heart attack, stroke and kidney failure. Diabetes can cause permanent vision loss by damaging blood vessels in the eyes. Many people with diabetes develop problems with their feet from nerve damage and poor blood flow. This can cause foot ulcers and may lead to amputation\cite{Krasteva}.     
+
+
+
+Type 2 diabetes is a multifactorial condition influenced by a combination of genetic, lifestyle, and environmental factors. Genetic predisposition plays a significant role, with individuals having a family history of diabetes being at higher risk. Lifestyle factors, such as sedentary behavior, poor dietary choices characterized by excessive consumption of refined sugars and saturated fats, and obesity, contribute significantly to the development of insulin resistance and impaired glucose metabolism. Aging is also a risk factor, as the body's ability to regulate blood sugar tends to diminish with age\cite{genetic}. 
+
+
+However, risk factors for one ethnic group may not be generalized to others. Being of Indigenous descent can increase the risk of living with type 2 diabetes \cite{Statistics}. Asian Indians have the highest diabetes prevalence rate (14.2%), whereas Asian Americans from Korea and Japan have the lowest diabetes prevalence rates 4.0% and 4.9%, respectively\cite{Ethnic}.
+
+The prevalence of diabetes is reported to be higher among the Pima Indian community. The Pima are one of the tribes of American Indian and Alaska Natives and claim a population of approximately 20,000 members in 2010.
+They have the highest rate of type 2 diabetes in the world with 34.2% for Pima men and 40.8% for Pima women compared to 9.3% in the United States \cite{Pima}.
+
+
+Therefore, this study used a dataset related to diabetes of Pima Indian Women to build a generalized linear model and investigate the significance of health-related predictors of diabetes in Pima Indians Women.
+
+
+
+### 1.2 Motivation
+
+
+
+In this comprehensive study, our focus centers on understanding the prevalent issue of diabetes among Pima Indian women, employing a meticulous examination of key health risk factors. The Pima community, exhibits one of the highest rates of type 2 diabetes globally, serves as a crucial backdrop for our investigation. Through statistical modeling, we aim to assess the individual significance of identified risk factors, such as BMI, glucose concentration, familial predisposition (Pedigree), age, and insulin levels, in influencing the likelihood of diabetes occurrence within this population.
+
+Our analytical approach revolves around Generalized Linear Model, providing a nuanced understanding of the relationships between these health variables and diabetes prevalence. The study unfolds through hypothesis testing, confidence interval estimation, and model fitness assessments, enabling us to quantify the impact of each factor independently. Through revealing the distinct roles played by these predictors, our study aims to offer practical understanding of the factors influencing diabetes risk in the Pima Indian female population. By using this lens, our research hopes to make a significant contribution to the larger conversation on diabetes prevalence and health risk factors, which will ultimately lead to better informed healthcare interventions and community well-being.
+
+
+
+## 2 Data Collection
+
+
+The sample used in the analysis is derived from the Pima Indian Diabetes Dataset, originally provided by the National Institute of Diabetes and Digestive and Kidney Diseases \cite{Original} . The original dataset consists of 768 women residing near Phoenix, Arizona, USA. However, the dataset we use for analysis is from Harvard Dataverse \cite{Clean}, where missing values of specific columns have been removed, resulting a reduction of rows to 394. So our sample size is 394.
+
+Our dataset includes 8 medical predictor variables such as time of pregnancies,
+glucose tolerance test, blood pressure, skin thickness, pedigree diabetes function, BMI, insulin levels, and age. Along with a binary response variable called "Diabetes".
+
+
+### 2.1 Data Preprocessing
+
+Default values for diabetes are -1 and 1. We changed them to 0 and 1 to be suitable as the response variable of the logistic regression model. Since pregnancies is discrete variable and in order to avoid plenty of dummy variables, we classified them to 5 categories, 0, 1, 2, 3, 4, and treated them as factors. This data preprocessing allows a more convenient model building and data analysis.
+
+
+Below is a data dictionary describing the predictor variables used in the analysis:
+
+                                                                 
+Response variable:
+Diabetes (Binary, 0 = normal, 1 = diabetes)
+
+\begin{table}[h]
+  \centering
+  \begin{tabular}{|l|l|p{7cm}|}
+    \hline
+    \textbf{Predictor Variable} & \textbf{Format} & \textbf{Description} \\
+    \hline
+    Pregnancies group (pregnancies) & Discrete & The number of pregnancies classified into 5 groups (0, 1, 2, 3, 4) to avoid dummy variables. \\
+    \hline
+    Oral Glucose Tolerance Test (glucose) & Continuous & Two-hour plasma glucose concentration after a 75g anhydrous glucose test in mg/dl. \\
+    \hline
+    Blood Pressure (BP) & Continuous & Diastolic Blood Pressure in mmHg. \\
+    \hline
+    Skin Thickness (thickness) & Continuous & Triceps skin fold thickness in mm. \\
+    \hline
+    Insulin (insulin) & Continuous & 2-hour serum insulin in mu U/ml. \\
+    \hline
+    BMI (BMI) & Continuous & Body Mass Index calculated as weight in kg divided by the square of height in meters. \\
+    \hline
+    Pedigree Diabetes Function (pedigree) & Continuous & A function representing the likelihood of getting the disease based on ancestral history. \\
+    \hline
+    Age (age) & Continuous & Age in years. \\
+    \hline
+  \end{tabular}
+  \caption{Description of Predictor Variables}
+\end{table}
+
+
+### 2.2 Descriptive Data Analysis
+
+\begin{table}[h]
+  \begin{center}
+  \begin{tabular}{|c|c|c|c|c|c|c|}
+    \hline
+    \textbf{Variable} & \textbf{Minimum} & \textbf{1st Quartile} & \textbf{Median} & \textbf{Mean} & \textbf{3rd Quartile} & \textbf{Maximum} \\
+    \hline
+    pregnancies & 0 & 1 & 2 & 3.30 & 5 & 17 \\
+    \hline
+    glucose & 0.00 & 99.00 & 119.00 & 122.38 & 143.00 & 198.00 \\
+    \hline
+    BP & 24.00 & 62.00 & 70.00 & 70.67 & 78.00 & 110.00 \\
+    \hline
+    thickness & 7.00 & 21.00 & 29.00 & 29.13 & 36.75 & 63.00 \\
+    \hline
+    insulin & 0.00 & 76.00 & 125.00 & 155.32 & 190.00 & 846.00 \\
+    \hline
+    BMI & 18.20 & 28.40 & 33.20 & 33.07  & 37.07 & 67.10 \\
+    \hline
+    pedigree & 0.085 & 0.27 & 0.45 & 0.52 & 0.68 & 2.42 \\
+    \hline
+    age & 21 & 23 & 23 & 30.88 & 36 & 81 \\
+    \hline
+  \end{tabular}
+  \end{center}
+  \caption{Summary statistics of Variables}
+\end{table}
+
+The summary statistics (minimum, 1st quartile, median, mean, 3rd quartile and maximum) of the dataset Pima Indian Diabetes is given above. 
+
+We noticed there are some "0"'s for glucose and insulin, they are outliers and we removed these rows from the dataset.
+
+
+1.Following is the histograms of our response variable and 8 predictor variables.
+
+```{r,echo=FALSE,results='hide'}
+db <- read.csv("original_data.csv",header=TRUE)
+head(db) 
+db <- subset(db, X2_hr_insulin != 0 & glucose_conc != 0) 
+par(mfrow = c(3, 3))
+hist(db$times_pregnant, col = "lightblue", main = "Pregnancies",xlab = " ")
+hist(db$glucose_conc, col = "lightblue", main = "glucose",xlab = " ")
+hist(db$Diastolic_BP, col = "lightblue", main = "Blood pressure",xlab = " ")
+hist(db$Triceps_thk, col = "lightblue", main = "Skin thickness",xlab = " ")
+hist(db$X2_hr_insulin, col = "lightblue", main = "Insulin",xlab = " ")
+hist(db$BMI, col = "lightblue", main = "BMI",xlab = " ")
+hist(db$Pedigree, col = "lightblue", main = "Pedigree",xlab = " ")
+hist(db$Age, col = "lightblue", main ="Age",xlab = " ")
+```
+
+From the histograms, we can see the distribution of pregnancies, glucose, insulin, pedigree and age can be seen as right skewed. While BP, thickness, BMI and pedigree approximately apply to normal distribution. 
+
+
+\break
+
+
+
+2. Analysis on pairs of variables
+
+```{r, echo=FALSE,results='hide'}
+plot(db,pch=20)
+```
+
+
+From the scatter plot, we noticed that there is a positive correlation between BMI and skin thickness, pregnancies and age. As there is a positive trend for the data points in these two scatter plot. 
+
+
+### 2.3 Statistical Model Choosing
+
+Following is the values of our response variable "Diabetes"
+
+$$
+\mbox{Diabetes}= 
+\begin{cases}
+  1 & \text{if the patient has diabetes} \\
+  0 & \text{if the patient does not have diabetes}
+\end{cases}
+$$
+
+As it is binary, we are going to use logistic regression model".
+
+\textbf{Logistic Regression Model}: \newline
+Logistic Regression is a statistical method used for modeling the probability of a binary outcome meaning it takes on two possible values, often coded as 0 and 1. This could represent outcomes such as 'success' or 'failure,' 'yes' or 'no,' or 'positive' or 'negative.' \newline
+
+For Logistic regression model we need to use a link function called logit function. \newline
+The logit function in logistic regression is defined as:
+
+$$\text{logit}(p) = \log\left(\frac{p}{1 - p}\right) = \beta_0 + \beta_1 X_1 + \beta_2 X_2 + \ldots + \beta_k X_k $$
+where $\beta_i$ is the coefficient, and $X_i$ is the predictor variable. We could also add interaction terms based on hypothesis testing and select the best model among our candidate models.
+
+
+## 3. Hypothesis Testing
+
+In statistical models, hypothesis testing for coefficient values is essential to verify the accuracy of predictions and evaluate how well the model fits the data. The weights of the independent variables are represented by beta values, and the statistical significance of these values shows how significant the relationships they depict are. This procedure supports decision-making for model improvement, including the inclusion or removal of variables, and validates the model's performance in interpreting the findings. In general, hypothesis testing makes statistical models more reliable and comprehensible, resulting in a stronger comprehension of the correlations between the variables.
+
+Furthermore, through hypothesis testing, we can discern which variables exhibit a significant relationship with diabetes. By assessing the statistical significance of the beta values associated with each variable, we gain insights into their individual contributions to the prediction of diabetes. This information aids in the identification of key factors influencing diabetes, guiding further model refinement and enhancing our understanding of the complex relationships within the dataset. Overall, the iterative process of hypothesis testing not only ensures the robustness of the model but also allows us to unravel meaningful associations that contribute to a comprehensive understanding of diabetes determinants.
+
+### 3.1 Hypothesis Test of Original Model
+In this project, the original model, which initially involved one-way single variables, underwent fitting. A Wald test was subsequently employed to determine the significance of variables and identified any non-significant ones. \newline
+
+Below shows the hypothesis and the result of test. \newline
+$H_0$: The coefficient of each explanatory variable is zero. \newline
+$H_1$: The coefficient of each explanatory variable is not zero. 
+
+
+\begin{table}[h]
+\begin{center}
+\begin{tabular}{c|c|c}  
+\hline
+Variable & z-value &  p-value \\ \hline 
+(Intercept) & -7.46 & 8.30e-14 \\       
+glucose  & 6.48 & 9.04e-11  \\         
+BP  & -0.17 & 0.86 \\              
+thickness & 0.77 & 0.44 \\         
+insulin & -0.71 & 0.48 \\            
+BMI & 2.42 & 0.015 \\             
+pedigree & 2.64 & 0.0082 \\            
+age & 2.42 & 0.015 \\             
+pregnant1 & -0.44 & 0.66 \\            
+pregnant2 & -0.11 & 0.92 \\          
+pregnant3 & 0.44 & 0.66 \\          
+pregnant4 & 0.36 & 0.72 \\          \hline
+\end{tabular}
+\end{center} 
+\caption{z-statistic and $p$-value of original model }
+\end{table}
+
+From the results of the Wald test, only five coefficients, including the intercept, were statistically significant at the 5% significance level. (Intercept), glucose, BMI, pedigree, and age appeared to be significant predictors, whereas BP, thickness, insulin, and the pregnancies variables lack significance in the model. This outcome prompted consideration of potential interaction terms influencing diabetes.
+
+The absence of statistical significance for certain variables suggested that their individual effects may not be reliable indicators. However, it underscored the possibility that interactions among variables collectively impact diabetes prediction. Further exploration of interaction terms could enhance the model's explanatory power, offering a more profound understanding of the variables influencing diabetes in this research.
+
+### 3.2 Hypothesis Test of Model with Two-Way Interaction Terms
+Following the test results of the initial model, we advanced to fitting an extended model that integrates two-way interaction terms. 
+\newline Diabetes ~ (glucose+BP+thickness+insulin+BMI+pedigree+age+pregnancies)^2 \newline
+This augmented model preserved the original eight single variables while introducing all conceivable two-way interaction terms. It will be referred to as the "two-way model."
+
+
+We performed the Wald-test using the same hypothesis using the two-way model. Similar to the hypothesis testing results of the original model, the two-way model also had that only a few variables are statistically significant. The significant variables are shown below table. 
+
+\begin{table}[h]
+\begin{center}
+\begin{tabular}{c|c|c}  
+\hline
+Variable & z-value &  p-value \\  \hline
+pregnant1 & -1.99 & 0.047 \\       
+glucose:BMI & -2.64 & 0.0082  \\     
+insulin:pedigree  & -2.32 & 0.020 \\              
+age:pregnant1 & 2.64 & 0.0082 \\             \hline
+\end{tabular}
+\end{center} 
+\caption{Significant variables of two-way interaction model from Wald Test}
+\end{table}
+
+### 3.3 Cutting Down Method
+The two-way model contains numerous variables that are not statistically significant, and the overall size of the model is excessively large. In an effort to streamline the model and retain only statistically significant variables, we conducted hypothesis testing once again.
+
+To remove the non-significant two-way interaction variables, we tested Likelihood Ratio Test(LRT) using the drop1() function in R. LRT evaluates the change in model fit by removing a single variable to the model. 
+
+The hypothesis are as follows: \newline
+$H_0$: The removed variable does not contribute significantly to the model, resulting in no significant change in model fit. \newline
+$H_1$: The removed variable contributes significantly to the model, leading to a significant change in model fit.
+
+
+
+By LRT test, we could get five statistically significant two-way interaction terms: 1) glucose:BMI, 2) thickness:age, 3) insulin:pedigree, 4) insulin:age, and 5) Age:pregnancies. 
+
+\begin{table}[h]
+\begin{center}
+\begin{tabular}{c|c|c}  
+\hline
+Variable & z-value &  p-value \\ \hline 
+glucose:BMI & 7.34 & 0.0067 \\       
+thickness:age & 3.93 & 0.047  \\           
+insulin:pedigree  & 6.80 & 0.0091 \\              
+insulin:age & 3.97 & 0.046 \\             
+age:pregnancies & 9.55 & 0.049 \\             \hline
+\end{tabular}
+\end{center} 
+\caption{Significant variables of two-way interaction model from LRT test}
+\end{table}
+
+We proceeded to fit a model by retaining only these five significant interaction terms and excluding the others. This model included the original eight variables from the original model, along with the five two-way interaction terms identified as significant in the test results. \newline
+Diabetes ~ glucose+BP+thickness+insulin+BMI+pedigree+age+pregnancies+glucose:BMI+thickness:age
++insulin:pedigree+insulin:age+age:pregnancies \newline
+
+From this model we applied the Wald test to each of the model's coefficients and removed the most non-significant variable. \newline
+$H_0$: The coefficient of each explanatory variable is zero. \newline
+$H_1$: The coefficient of each explanatory variable is not zero. \newline
+
+
+Similar to the previous hypothesis test results, this model includes many variables that are not statistically significant. Among them, the least significant variable is BP and its p-value is 0.7031.
+
+From the above result, BP variable was removed from the model and fit the data again. \newline
+Diabetes ~ glucose+thickness+insulin+BMI+pedigree+age+pregnancies+glucose:BMI+thickness:age
++insulin:pedigree+insulin:age+age:pregnancies
+
+
+The hypothesis test is perforemd again and the variable found to be the least significant is age, with a p-value of 0.364. In the subsequent analysis, the decision was made to conduct a test by removing the age variable.
+
+Similar to the hypothesis testing conducted earlier, the iterative process of systematically removing variables is continued. This sequential approach aims to eliminate non-significant variables, one step at a time, until only statistically significant variables remain in the model. This method allows for a refined model that emphasizes the inclusion of predictors with a meaningful impact on the response variable, contributing to a more streamlined and interpretable statistical model.
+
+Continuing this iterative process of variable removal, the final model that emerged is represented by the following formula: \newline
+Diabetes ~ glucose + insulin + BMI + pedigree + insulin:pedigree + insulin:age \newline
+This refined model includes only the statistically significant variables, such as glucose concentration, insulin, BMI, pedigree, and their interactions, specifically insulin with pedigree and age.
+
+
+\begin{table}[h]
+\begin{center}
+\begin{tabular}{c|c|c}  
+\hline
+Variable & z-value &  p-value \\ \hline 
+(Intercept) & -8.78 & < 2.22e-16 \\      
+glucose  & 7.19 & 6.07e-13  \\      
+insulin & -2.39 & 0.016 \\          
+BMI & 3.80 & 0.00014 \\             
+pedigree & 3.95 & 7.76e-05 \\          
+insulin:pedigree & -2.79 & 0.0051 \\      
+insulin:age & 4.14 & 3.39e-05 \\             \hline
+\end{tabular}
+\end{center}
+\caption{z statistic and $p$-value of the final model}
+\end{table}
+
+
+### 3.4 Adding Up Method
+
+
+
+We also did in another way, by adding interaction terms to get the most suitable model. Model 1 represents estimates from the null model, while Model 2 is our original model. Since the residual deviance is decreased significantly with the inclusion of predictor variables, we can say that the model with the inclusion of predictor variables is better than the null model. Based on our original model, the variables pregnancies, thickness, BP, and insulin are not significant predictors of diabetes at 5% significance level. 
+
+Model 3 is the reduced model with only 4 predictor variables, BMI, glucose, pedigree, and age. Non-significant variables from Model 2 are omitted, as we want to ensure every variable is significant, providing more meaningful result.
+
+Next, we added interaction terms based on the reduced model to improve goodness of fit. We started with adding 7 interactions of first variable (BMI) with other 7 variables to Model 3, and then analyse the significance of all variables (singles and interactions). 8 additional models with different interactions were built and analysed in this way. Among these models, we observed from the one including interactions related insulin, that insulin interacting with pedigree and age is significant, while single variable age is not. Therefore, age is removed and insulin (this single variable turns to be significant in the model) is added. This is the steps of getting Model 4, the final model, which consists of BMI, glucose, pedigree, insulin, insulin $\times$ age, and insulin $\times$ pedigree.
+
+Following is the table of estimates of 4 models.
+
+\begin{table}[h]
+\begin{center}
+\begin{tabular}{c|c|c|c|c}
+\hline
+& Model 1 & Model 2 & Model 3 & Model 4 \\ \hline
+intercept & $-0.70_{(***)}$ & $-1.00_{(***)}$ & $-10.13_{(***)}$ & $-1.03_{(***)}$ \\ 
+BMI &  & $-0.07_{(*)}$ & $0.08_{(***)}$ & $0.08_{(***)}$ \\ 
+pedigree & & $1.13_{(**)}$ & $1.09_{(**)}$ & $2.61_{(***)}$ \\ 
+glucose & & $-0.04_{(***)}$ & $0.04_{(***)}$ & $0.04_{(***)}$ \\ 
+age & & $0.05_{(*)}$ & $0.05_{(***)}$ & \\ 
+insulin & & $0.0009$ &  & $0.007_{(*)}$ \\ 
+BP & & $-0.0021$ & & \\ 
+thickness & & $0.013$ & & \\ 
+pregnancies1 & & $0.21$ & &\\ 
+pregnancies2 & & $-0.056$ & &\\ 
+pregnancies3 & & $0.21$ & &\\ 
+pregnancies4 & & $0.20$ & &\\ 
+pedigree:insulin & & & & $-0.006_{(**)}$ \\ 
+age:insulin & & & & $0.0009_{(***)}$ \\ \hline
+\end{tabular}
+\end{center}
+\caption{Estimated coefficients of 4 candidate models}
+\end{table}
+
+Figures in parentheses indicate $p$-values. *** p < 0.001, ** p < 0.01, * p < 0.1. BP and thickness represent blood pressure and skin thickness.
+
+Above all, although we used two different methods of cutting down and adding up interactions, the final model is the same.
+
+The final model is \newline
+$\mbox{logit}(diabetes) = -10.2666+0.0436x_{glucose}-0.00697x_{insulin}+0.08242x_{BMI}+2.6093x_{pedigree}-0.0062x_{insulin:pedigree}+0.0003x_{insulin:Age}$  \newline
+
+
+
+Each coefficient including the intercept can be interpreted that: \newline
+(Intercept): The estimated intercept is approximately -10.27. This represents the log-odds of the response variable when all other predictors are zero. \newline
+glucose: For every one-unit increase in glucose concentration, the log-odds of the response variable increase by approximately 0.043. \newline
+insulin: For every one-unit increase in X2_hr_insulin, the log-odds of the response variable decrease by approximately 0.007. \newline
+BMI: For every one-unit increase in BMI, the log-odds of the response variable increase by approximately 0.082. \newline
+pedigree: For every one-unit increase in Pedigree, the log-odds of the response variable increase by approximately 2.61. \newline
+insulin:pedigree: The interaction term between insulin and pedigree. For every one-unit increase in this interaction term, the log-odds of the response variable decrease by approximately 0.006. \newline
+insulin:age: The interaction term between insulin and age. For every one-unit increase in this interaction term, the log-odds of the response variable increase by approximately 0.00029. \newline
+
+## 4. Confidence Interval
+We have calculated confidence intervals for the regression coefficients in the final model chosen using hypothesis testing and the original model. Each independent variable's confidence intervals sheds light on how consistently the effects connected to each variable are reliable. These intervals improve our comprehension of the relative effects of variables and aid in evaluating the model's stability.
+
+In statistical terms, a confidence interval represents a range of values within which we are reasonably confident that the true parameter lies. A 95% confidence interval implies that if we are approximately 95% confident that the true coefficient value is in between CI.
+
+These confidence intervals, which provide an indicator of the accuracy and consistency of the predicted coefficients, are essential to understanding the model. They contribute to a deeper comprehension of the connections inside the model.
+
+95% Confidence interval: (Coefficients estimation $\pm$ 1.96 $\times$ Coefficient standard error)
+
+### 4.1 Confidence Interval of Original Model
+
+
+The 95% of confidence intervals of original model coefficients are calculated.
+
+\begin{table}[h]
+\begin{center}
+\begin{tabular}{c|c|c|c|c}  
+\hline
+Variable & Estimates & SE & Lower & Upper \\ \hline 
+(Intercept) & -10.01 & 1.34&-12.63 & -7.38 \\    
+glucose  & 0.03 & 0.0059 & 0.026 & 0.049 \\          
+BP  & -0.0021 & 0.012 & -0.026 & 0.021 \\             
+thickness & 0.013 & 0.017 & -0.020 & 0.047 \\      
+insulin & -0.00093 & 0.0013 & -0.0035 & 0.0016 \\            
+BMI & 0.067 & 0.027 & 0.012 & 0.12 \\           
+pedigree & 1.13 & 0.43 & 0.29 & 1.97 \\            
+age & 0.046 & 0.019 & 0.0087 & 0.083 \\            
+pregnant1 & -0.21 & 0.49 & -1.16 & 0.74 \\          
+pregnant2 & -0.056 & 0.52 & -1.092 & 0.98 \\           
+pregnant3 & 0.21 & 0.48 & -0.46 & 1.47 \\        
+pregnant4 & 0.20 & 0.57 & -0.54 & 1.69 \\             \hline
+\end{tabular}
+\end{center} 
+\caption{95\% CI of original model coefficients}
+\end{table}
+
+Similar to the hypothesis result, some variables include zero in the confidence interval. This means that the variables which include zero in the confidence interval, does not statistically significant. 
+
+### 4.2 Confidence Interval of the Final Model
+
+\begin{table}[h]
+\begin{center}
+\begin{tabular}{c|c|c|c|c}  
+\hline
+Variable & Estimates & SE & Lower & Upper \\ \hline 
+(Intercept) & -10.27 & 1.17 & -12.56 & -7.98 \\    
+glucose  & 0.043 & 0.0061 & 0.032 & 0.055 \\        
+insulin & -0.0069 & 0.0029 & -0.013 & -0.0013 \\           
+BMI & 0.08 & 0.022 & 0.040 & 0.12 \\           
+pedigree & 2.61 & 0.66 & 1.32 & 3.90 \\          
+insulin:pedigree & -0.0061 & 0.0022 &  -0.01 & -0.0018 \\           
+insulin:age & 0.00029 & 0.000071 & 0.00015 & 0.00043 \\           \hline
+\end{tabular}
+\end{center} 
+\caption{95\% CI of final model coefficients}
+\end{table}
+
+The 95% of confidence intervals of the final model coefficients are calculated.
+
+The final model's confidence interval contains no variables that include 0, in contrast to the original model. We are able to confirm that every variable is important.
+
+## 5 Model Checking
+
+
+In the realm of statistical modeling, assessing the goodness of fit is a critical step to ensure that a chosen model aligns well with the observed data. One widely employed metric for this purpose is the coefficient of determination, commonly known as $R^2$. In this case, McFadden’s pseudo $R^2$ is calculated to check the model. This metric quantifies the proportion of variability in the dependent variable that is explained by the model, providing valuable insights into the model's effectiveness in capturing the underlying patterns within the data. \newline
+
+
+
+### 5.1 McFadden’s Pseudo R-squared Test
+
+
+The equation of McFadden’s Pseudo $R^2$ is as following
+
+$$R^2 =\frac{l(b_{min})-l(b)}{l(b_{min})-l(b_{max})}=\frac{Dev(b_{min})-Dev(b)}{Dev(b_{min})}$$
+
+Below is $R^2$ value of our four candidate models. Model 1 represents the null model, model 2 is the original model, model 3 is the reduced model with 4 single variables, while model 4 is our final model. \newline
+
+\begin{table}[h]
+\begin{center}
+\begin{tabular}{c|cccc}
+\hline
+ & Model 1 & Model 2 & Model 3 & Model 4\\
+\hline
+McFadden’s Pseudo $R^2$ & 1.13e-16 & 0.310 & 0.306 & 0.338 \\
+\hline
+\end{tabular}
+\end{center}
+\caption{$R^2$ values}
+\end{table}
+
+
+Based on the computed pseudo $R^2$ values, the $R^2$ of original model (model 2) is 0.31, indicating that it explains approximately 31.06% of the variability in the dependent variable. This value suggests a moderate level of explanatory power. In contrast, the final model exhibits an improved $R^2$ of 0.34, representing a higher percentage of explained variability. \newline
+
+
+If the $R^2$ value ranges from 0.2 to 0.4, then it indicates a good model fit, thus model 2, 3, 4 are all well fitted models compared to the null model.
+
+
+### 5.2 Deviance Test
+
+
+The deviance-based goodness-of-fit test is an essential technique for evaluating the quality of a model in statistical modeling. Deviance, a measure of how well the model fits the observed data, is the primary focus of this test. Deviance statistics analysis supports in detecting potential model flaws and advances efforts to make the model more accurate and reliable. \newline
+
+
+
+The following is the hypothesis that was used in the goodness of fit test.  \newline
+$H_0$: The model fits the data well. \newline
+$H_1$: The model does not fit the data well. \newline
+
+
+Deviance statistic is denoted as $G^2$, it is also called the likelihood-ratio test (LRT) statistic in some text. The formula is as follows.
+
+$$
+G^2 = 2 \times (l(b_{max}) - l(b))
+$$
+
+
+where $l(b_{max})$ is the log-likelihood of saturated model, while $l(b)$ is the log-likelihood of proposed model. 
+
+The deviance residual and corresponding $p$-value of our four models are given below.
+
+
+\begin{table}[h]
+\begin{center}
+\begin{tabular}{c|cccc}
+\hline
+ & Model 1 & Model 2 & Model 3 & Model 4\\
+\hline
+Deviance statistic $G^2$ & 501.11 & 345.46 & 347.81 & 331.73 \\
+$p$-value &  0.00017 & 0.91 & 0.93 & 0.98 \\ \hline
+\end{tabular}
+\end{center}
+\caption{Deviance statistic and corresponding $p$-value of candidate models}
+\end{table}
+
+
+For Model 1, the $p$-value is 0.00017, less than our significance level 0.05. It gives us sufficient evidence to reject null hypothesis, indicating the null model does not fit with our data.
+
+Model 2, Model 3, Model 4 all have lower deviance statistics ($G^2$) compared to Model 1.
+Their corresponding $p$-values are much larger than 0.05. Therefore, we have insufficient evidence to reject null hypothesis for these three models. The goodness-of-fit tests for Model 2, 3, 4 are not significant, they are good fit for our data.
+\newline
+
+
+
+
+
+## 6 Model Comparison and Selection
+
+
+For this section, we compared our four candidate models to obtain best possible model. 
+
+Since they are not nested, likelihood-ratio test and deviance test could not be used to perform the comparison, which are restricted to be only valid for nested models. We used Akaike’s Information Criteria (AIC), and Bayesian Information Criteria (BIC) to select the best possible model. 
+
+### 6.1 Akaike Information Criterion (AIC)
+
+
+\hfill 
+The Akaike Information Criterion (AIC) serves as an estimator of prediction error and facilitates model selection by assessing the relative quality of different statistical models applied to a given dataset. It acknowledges that statistical models never perfectly represent the underlying data-generating process, which results in some information loss. AIC quantifies this information loss, offering a measure to compare models. When fitting models, it is possible to increase the maximum likelihood by adding parameters, but doing so may result in overfitting. This criterion effectively balances the trade-off between a model's goodness of fit and its simplicity, dealing with risks of both overfitting and underfitting.
+
+
+Let $p$ be the number of parameters, while $\hat{L}$ is the maximized value of the likelihood function. For GLM, $-2\log(\hat{L})$ is the deviance of the model.
+
+The AIC value of the model is as following
+
+$$
+\mbox{AIC} = -2\log(\hat{L}) + 2p
+$$
+
+
+
+Given a set of candidate models for the data, the preferred model is the one with the minimum AIC value. Thus, AIC rewards goodness of fit (as assessed by the likelihood function), but it also includes a penalty that is an increasing function of the number of estimated parameters. The penalty discourages overfitting, which is desired because increasing the number of parameters in the model almost always improves the goodness of the fit.
+
+
+\begin{table}[h]
+\begin{center}
+\begin{tabular}{ccccc}
+\hline
+ & Model 1 & Model 2 & Model 3 & Model 4 \\ 
+\hline
+AIC & 503.11 & 369.46 & 357.81 & 345.73 \\ \hline
+\end{tabular}
+\end{center}
+\caption{AIC values of candidate models}
+\end{table}
+
+
+Consider the differences in AIC between models. If the difference is substantial (greater than 2), it suggests that the model with the lower AIC is significantly better. 
+
+As can be seen from the Table, AIC decreases from Model 1 to Model 4, indicating an improvement in model fit. Model 4 has the lowest AIC, which is favored by AIC as it provides the best compromise between goodness of fit and simplicity.
+
+There will almost always be information lost due to using a candidate model to represent the "true model",and we hope to select the model that minimizes the information loss among the candidate models.
+
+Denote the AIC value of our 4 models are $\mbox{AIC}_1$,$\mbox{AIC}_2$,$\mbox{AIC}_3$,$\mbox{AIC}_4$. Let $\mbox{AIC}_{min}$ be the minimum of those values, which is $\mbox{AIC}_4 = 345.7268$. 
+$\exp((\mbox{AIC}_{min} - \mbox{AIC}_i)/2)$ is known as the relative likelihood of model $i$, it can be interpreted as being proportional to the probability that the $i^{th}$ model minimizes the information loss.
+
+\begin{table}[h]
+\begin{center}
+\begin{tabular}{cccc}
+\hline
+ & Model 1 & Model 2 & Model 3 \\ 
+\hline
+$\exp((\mbox{AIC}_{min} - \mbox{AIC}_i)/2)$ & $6.68 e^{-35}$ & $7.02 e^{-6}$ & $0.0024$  \\ \hline
+\end{tabular}
+\end{center}
+\caption{Relative likelihood of candidate models}
+\end{table}
+
+
+From this Table, Model 3 is 0.00237 times as probable as Model 4 to minimize the information loss. For Model 1 and Model 2, they are much less likely to minimize the information loss compared to Model 4. 
+
+Above all the comparison analysis using AIC, Model 4 is chosen to be the best model.
+While AIC is useful for model selection, we also need BIC to assess if Model 4 is also preferred by this criteria.
+
+### 6.2 Bayesian information criteria (BIC)
+
+\hfill
+The Bayesian information criterion (BIC) or Schwarz information criterion (also SIC, SBC, SBIC) is a criterion for model selection among a finite set of models; models with lower BIC are generally preferred. It is based on the likelihood function and it is closely related to the Akaike information criterion (AIC).
+
+Both BIC and AIC attempt to resolve this problem by introducing a penalty term for the number of parameters in the model. Note that BIC incorporates a higher penalty for a higher number of observations, and so it rewards more parsimonious models. The penalty for model complexity increases with the sample size, making BIC more stringent for larger datasets.
+
+Similarly, $p$ is the number of parameters, $\hat{L}$ is the maximized value of the likelihood function estimate. For GLM, $-2\log(\hat{L})$ is the deviance of the model. $n$ is the number of observations.
+
+The BIC value of the model is as following
+
+$$
+\mbox{BIC} =  -2\log(\hat{L}) + p \times \log(n)
+$$
+
+We calculated the BIC of each candidate model and got the following table.
+
+
+\begin{table}[h]
+\begin{center}
+\begin{tabular}{ccccc}
+\hline
+ & Model 1 & Model 2 & Model 3 & Model 4 \\ 
+\hline
+BIC & 507.09 & 417.17 & 377.69 & 373.56 \\ \hline
+\end{tabular}
+\end{center}
+\caption{BIC values of candidate models}
+\end{table}
+
+
+
+When picking from several models, ones with lower BIC values are generally preferred. From the table, we can see that Model 4 still has the lowest BIC value, indicating it is also favored by BIC among four candidate models. 
+
+
+In conclusion, we select Model 4 as the best model for our dataset. It is preferred by both the Akaike Information Criteria (AIC) and the Bayesian Information Criteria (BIC). This model reached a balance between model fit and complexity, and demonstrates a strong capacity to capture underlying patterns in the data while avoiding unnecessary intricacies that might lead to overfitting. The agreement between AIC and BIC suggests that the selected model is both parsimonious and effective in explaining the observations.
+
+
+## 7 Plots Interpretation
+
+In this section, we are going to interpret the Residuals vs Fitted plot, Q-Q plot of Model 4, our best fitted model.
+
+
+1. From Residuals vs Fitted plot for Model 4, we can see there are two curvilinear trends, since the fit of a logistic regression is curvilinear by nature. The red line is the estimated regression line, and data points 4, 51 and 253 deviate from it. Since these three points are far from the main cluster, they are identified as outliers.
+
+```{r,echo=FALSE,results='hide'}
+db$category_pregnant <- ifelse(db$times_pregnant ==0, 0,
+                      ifelse(db$times_pregnant ==1, 1,
+                      ifelse(db$times_pregnant ==2, 2,
+                             ifelse((db$times_pregnant <=5)&(db$times_pregnant >=3),3,4)))) 
+db$Diabetes <- ifelse(db$Diabetes == -1, 0,1)  ## update the diabetes to 0,1
+db$category_pregnant <- as.factor(db$category_pregnant)  ## make pregnant category to factor values
+model4 <- glm(Diabetes ~ BMI + glucose_conc + Pedigree + X2_hr_insulin + Pedigree:X2_hr_insulin + Age:X2_hr_insulin, data = db, family = binomial)
+plot(model4, 1)
+```
+
+2.
+From the Normal Q-Q plot, it is shown that our residuals are normally distributed except the upper tail of observations, where the outliers are also included. For the data in upper tail, the deviance residuals are higher than theoretical one, they are more spread out than supposed.
+
+```{r, echo=FALSE}
+plot(model4, 2)
+```
+
+## 8 Conclusion
+
+We analyzed the Pima Indian Diabetes dataset to identify variables associated with diabetes through hypothesis testing. We built several logistic regression models using statistically significant variables. We then calculated each model by calculating $R^2$ and performed deviance tests to measure how well the model fit the data.
+
+Comparing models using AIC and BIC informs decisions about which model best fits the data. Through this comparison, We expanded our understanding of the model's fitness and observed improved performance as the model was expanded.
+
+Our project provided a deep understanding of hypothesis testing, logistic regression modeling, and application of model evaluation metrics. Insights gained from comparing and evaluating different models will likely prove invaluable in future analyzes of similar data sets. This project not only deepened our understanding of concepts in statistics and modeling, but also gave us practical experience in data analysis.
+
+
+\pagebreak
+
+## 9 References
+
+\begin{thebibliography}{7}
+
+\bibitem{Krasteva} Krasteva A., Panov V., Kisselova A., Krastev Z. Oral cavity and systemic diseases—Diabetes mellitus. Biotechnol. Biotechnol. Equip. 2011;25:2183–2186. doi: 10.5504/BBEQ.2011.0022.
+
+\bibitem{genetic} Tremblay, J., Hamet, P. (2019). Environmental and genetic contributions to diabetes. Metabolism, 100, 153952. https://doi.org/10.1016/j.metabol.2019.153952
+
+\bibitem{Statistics} “Statistics about Diabetes.” Statistics About Diabetes | ADA, diabetes.org/about-diabetes/statistics/about-diabetes. Accessed 03 Dec. 2023. 
+
+\bibitem{Ethnic}Spanakis, Elias K., and Sherita Hill Golden. ‘Race/Ethnic Difference in Diabetes and Diabetic Complications’. Current Diabetes Reports, vol. 13, no. 6, Dec. 2013, p. 10.1007/s11892-013-0421–29. PubMed Central, https://doi.org/10.1007/s11892-013-0421-9.
+
+\bibitem{Pima} Booth, Clayton. Policy and Social Factors Influencing Diabetes among Pima Indians in Arizona, USA. Public Policy and Administration Research, No 2017.
+
+\bibitem{Original}  Kahn,Michael. Diabetes. UCI Machine Learning Repository. https://doi.org/10.24432/C5T59G.
+
+\bibitem{Clean}  Bartley, Christopher. Replication Data for: Pima Indians Diabetes. Harvard Dataverse. https://doi.org/10.7910/DVN/XFOZQR
+ 
+\end{thebibliography}
+
+
+\pagebreak
+
+## 10 Appendix
+
+### 10.1 Descriptive Plots
+
+The histograms of response variable and predictor variables
+```{r}
+db <- read.csv("original_data.csv",header=TRUE)
+# Assuming your data frame is named 'db'
+db <- subset(db, X2_hr_insulin != 0 & glucose_conc != 0) 
+# remove rows with insulin or glucose is equal to 0
+db$Diabetes <- ifelse(db$Diabetes == -1, 0,1)  ## update the diabetes to 0,1
+plot_data <- data.frame(db$times_pregnant,db$glucose_conc,db$Diastolic_BP,db$Triceps_thk,db$X2_hr_insulin,db$BMI,db$Pedigree, db$Age)
+db$category_pregnant <- ifelse(db$times_pregnant ==0, 0,
+                      ifelse(db$times_pregnant ==1, 1,
+                      ifelse(db$times_pregnant ==2, 2,
+                             ifelse((db$times_pregnant <=5)&(db$times_pregnant >=3),3,4))))  ## add column pregnant category
+db$category_pregnant <- as.factor(db$category_pregnant)  ## make pregnant category to factor values
+par(mfrow = c(3, 3))
+hist(db$Diabetes, col = "lightblue", main = "Diabetes",xlab = " ")
+hist(db$times_pregnant, col = "lightblue", main = "Pregnancies",xlab = " ")
+hist(db$glucose_conc, col = "lightblue", main = "glucose",xlab = " ")
+hist(db$Diastolic_BP, col = "lightblue", main = "Blood pressure",xlab = " ")
+hist(db$Triceps_thk, col = "lightblue", main = "Skin thickness",xlab = " ")
+hist(db$X2_hr_insulin, col = "lightblue", main = "Insulin",xlab = " ")
+hist(db$BMI, col = "lightblue", main = "BMI",xlab = " ")
+hist(db$Pedigree, col = "lightblue", main = "Pedigree",xlab = " ")
+hist(db$Age, col = "lightblue", main ="Age",xlab = " ")
+```
+
+
+Scatter plot for pairs of data points
+```{r}
+plot(db,pch=20)
+```
+
+
+### 10.2 Hypothesis Testing
+
+
+To perform the 95% Wald test for the coefficients, first we fit the original model which has 8 single variables on the data. 
+From the summary, we could check the result of Wald test.
+```{r}
+#Fit the original model
+model2 <- glm(Diabetes ~ . - times_pregnant , data = db, family = binomial) 
+#Check p-value for Wald test
+summary(model2)
+```
+
+
+
+From the result of the original model, only few variables are significant. It made us to consider there might be some interaction terms influencing the diabetes. Therefore, we fit two-way interaction model and test the coefficient.
+From the summary function, we could check the result, and only some variables are significant, similar to the original model.
+
+```{r}
+#Fit two-way interaction model
+model5 <- glm(Diabetes ~ (glucose_conc+Diastolic_BP+Triceps_thk+X2_hr_insulin+BMI+Pedigree+Age+category_pregnant)^2, data = db, family = binomial)
+#Check p-value for Wald test
+summary(model5)  
+```
+
+
+
+Since the model size is too large and many non-significant variables are included, we performed LRT test for the interaction terms.
+From the test, 5 interaction terms are significant. 
+1) glucose:BMI, 2) thickness:age, 3) insulin:pedigree, 4) insulin:age, and 5) Age:pregnancies. 
+```{r}
+#Perform LRT test for the interaction terms
+drop1(model5, test="LRT")
+```
+
+The five variables are added to the original model. We performed the Wald test for the coefficient again. In this time, the most non-significant variable is removed one by one. 
+From the result, BP was the least significant with p-value, 0.7031, and removed.
+```{r}
+#Fit the model which has 8 single variables and 5 interaction terms
+model6 <- glm(Diabetes ~ glucose_conc+Diastolic_BP+Triceps_thk+X2_hr_insulin+BMI+Pedigree+Age+category_pregnant+glucose_conc:BMI+Triceps_thk:Age+X2_hr_insulin:Pedigree+X2_hr_insulin:Age+Age:category_pregnant, data = db, family = binomial)
+#Check p-value for Wald test
+summary(model6)
+```
+
+
+Using the model from the previous test, we performed the test again. In this test, Age variable has the largest p-value, 0.364. The Age varialbe is removed in this stage.
+
+```{r}
+#Fit the model from the previous test
+model7 <- glm(Diabetes ~ glucose_conc+Triceps_thk+X2_hr_insulin+BMI+Pedigree+Age+category_pregnant+glucose_conc:BMI+Triceps_thk:Age+X2_hr_insulin:Pedigree+X2_hr_insulin:Age+Age:category_pregnant, data = db, family = binomial)
+#Check p-value for Wald test
+summary(model7)
+```
+
+We keep performing the same test and removing the most non-significant variables until only significant variables are left.
+At the end, the model 4 is obtained.
+
+```{r}
+#Fit the model get from the previous test
+model8 <- glm(Diabetes ~ glucose_conc+Triceps_thk+X2_hr_insulin+BMI+Pedigree+category_pregnant+glucose_conc:BMI+Triceps_thk:Age+X2_hr_insulin:Pedigree+X2_hr_insulin:Age+Age:category_pregnant, data = db, family = binomial)
+#Check p-value for Wald test
+summary(model8)
+
+#Fit the model get from the previous test
+model9 <- glm(Diabetes ~ glucose_conc+Triceps_thk+X2_hr_insulin+BMI+Pedigree+glucose_conc:BMI+Triceps_thk:Age+X2_hr_insulin:Pedigree+X2_hr_insulin:Age+Age:category_pregnant, data = db, family = binomial)
+#Check p-value for Wald test
+summary(model9)
+
+#Fit the model get from the previous test
+model10 <- glm(Diabetes ~ glucose_conc+Triceps_thk+X2_hr_insulin+BMI+Pedigree+glucose_conc:BMI+Triceps_thk:Age+X2_hr_insulin:Pedigree+X2_hr_insulin:Age, data = db, family = binomial)
+#Check p-value for Wald test
+summary(model10) 
+
+#Fit the model get from the previous test
+model11 <- glm(Diabetes ~ glucose_conc+Triceps_thk+X2_hr_insulin+BMI+Pedigree+glucose_conc:BMI+X2_hr_insulin:Pedigree+X2_hr_insulin:Age, data = db, family = binomial)
+#Check p-value for Wald test
+summary(model11) 
+
+#Fit the model get from the previous test
+model12 <- glm(Diabetes ~ glucose_conc+X2_hr_insulin+BMI+Pedigree+glucose_conc:BMI+X2_hr_insulin:Pedigree+X2_hr_insulin:Age, data = db, family = binomial)
+#Check p-value for Wald test
+summary(model12) 
+
+#Fit the model get from the previous test
+model4 <- glm(Diabetes ~ glucose_conc+X2_hr_insulin+BMI+Pedigree+X2_hr_insulin:Pedigree+X2_hr_insulin:Age, data = db, family = binomial)
+#Check p-value for Wald test
+summary(model4) 
+```
+
+
+
+We performed another method to find the model. In this time we added the interaction terms. First we checked the deviance of null model and original model. the residual deviance is decreased significantly with the inclusion of predictor variables, it can be said that the model with the inclusion of predictor variables is better than the null model. 
+Then we test the original model's coefficient what we did before. Model 3 is constructed using the variables which are significant in model2. 
+Using model 3, we fitted seven models. Each model has four single variable s and interaction terms of each 8 single variable.
+(e.g Diabetes ~ BMI + glucose + pedigree + insulin + BMI's all interaction terms)
+From these models, significant interaction terms are found and these terms are added to model 3.
+We tested the model to check whether the added terms are significant or not. From that, we found that insulin with pedigree and age is significant but the single age is not. Therefore age is removed. 
+Since insulin variable has two significant interaction terms so we added the insulin and tested. The result is that insulin is significant, so we keep the insulin.
+Finally, we obtained the model which is same as cutting down method.
+
+```{r, results='hide'}
+model1 <- glm(Diabetes ~ 1 , data = db, family = binomial)
+fit1 <- summary(model1)
+#null model
+
+model2 <- glm(Diabetes ~ . - times_pregnant , data = db, family = binomial)   ## fit the model
+#summary(cat.glm) #summary of fit
+fit2 <- summary(model2)
+
+model3 <- glm(Diabetes ~ BMI + glucose_conc + Pedigree + Age , data = db, family = binomial)
+#model removed non-significant variables
+fit3 <- summary(model3) 
+
+model4 <- glm(Diabetes ~ BMI + glucose_conc + Pedigree + X2_hr_insulin + Pedigree:X2_hr_insulin + Age:X2_hr_insulin, data = db, family = binomial)
+fit4 <- summary(model4) #331 
+
+model5 <- glm(Diabetes ~ glucose_conc+X2_hr_insulin+BMI+Pedigree+glucose_conc:BMI+X2_hr_insulin:Pedigree+X2_hr_insulin:Age, data = db, family = binomial)
+fit5 <- summary(model5)
+```
+
+### 10.3 Confidence Interval Estimation
+
+We could also check the hypothesis test result by calculating confidence interval. First we calculated the original model's confidence interval. Same as the hypothesis test, only 4 variables' CI does not include 0 values. In other words, the confidence intervals which does not include zero are significant. The significant variables are glucose, BMI, pedigree, and age.
+
+```{r, results='hide'}
+#Coefficient estimation of original model
+ori_intercept <- summary(model2)$coefficients["(Intercept)","Estimate"]
+ori_glucose_conc <- summary(model2)$coefficients["glucose_conc","Estimate"]
+ori_Diastolic_BP <- summary(model2)$coefficients["Diastolic_BP","Estimate"]
+ori_Triceps_thk <- summary(model2)$coefficients["Triceps_thk","Estimate"]
+ori_X2_hr_insulin <-  summary(model2)$coefficients["X2_hr_insulin","Estimate"]
+ori_BMI <-  summary(model2)$coefficients["BMI","Estimate"]
+ori_Pedigree <-  summary(model2)$coefficients["Pedigree","Estimate"]
+ori_Age <-  summary(model2)$coefficients["Age","Estimate"]
+ori_pregnant1 <-  summary(model2)$coefficients["category_pregnant1","Estimate"]
+ori_pregnant2 <-  summary(model2)$coefficients["category_pregnant2","Estimate"]
+ori_pregnant3 <-  summary(model2)$coefficients["category_pregnant3","Estimate"]
+ori_pregnant4 <-  summary(model2)$coefficients["category_pregnant4","Estimate"]
+
+#Standard error of original model coefficient
+ori_intercept_se <- summary(model2)$coefficients["(Intercept)","Std. Error"]
+ori_glucose_conc_se <- summary(model2)$coefficients["glucose_conc","Std. Error"]
+ori_Diastolic_BP_se <- summary(model2)$coefficients["Diastolic_BP","Std. Error"]
+ori_Triceps_thk_se <- summary(model2)$coefficients["Triceps_thk","Std. Error"]
+ori_X2_hr_insulin_se <-  summary(model2)$coefficients["X2_hr_insulin","Std. Error"]
+ori_BMI_se <-  summary(model2)$coefficients["BMI","Std. Error"]
+ori_Pedigree_se <-  summary(model2)$coefficients["Pedigree","Std. Error"]
+ori_Age_se <-  summary(model2)$coefficients["Age","Std. Error"]
+ori_pregnant1_se <-  summary(model2)$coefficients["category_pregnant1","Std. Error"]
+ori_pregnant2_se <-  summary(model2)$coefficients["category_pregnant2","Std. Error"]
+ori_pregnant3_se <-  summary(model2)$coefficients["category_pregnant3","Std. Error"]
+ori_pregnant4_se <-  summary(model2)$coefficients["category_pregnant4","Std. Error"]
+
+#Calculating 95% of CI of original model
+ori_intercept_ci <- c(ori_intercept - 1.96 * ori_intercept_se, ori_intercept + 1.96 * ori_intercept_se)
+ori_glucose_conc_ci <- c(ori_glucose_conc - 1.96 * ori_glucose_conc_se, ori_glucose_conc + 1.96 * ori_glucose_conc_se)
+ori_Diastolic_BP_ci <- c(ori_Diastolic_BP - 1.96 * ori_Diastolic_BP_se, ori_Diastolic_BP + 1.96 * ori_Diastolic_BP_se)
+ori_Triceps_thk_ci <- c(ori_Triceps_thk - 1.96 * ori_Triceps_thk_se, ori_Triceps_thk + 1.96 * ori_Triceps_thk_se)
+ori_X2_hr_insulin_ci <-  c(ori_X2_hr_insulin - 1.96 * ori_X2_hr_insulin_se, ori_X2_hr_insulin + 1.96 * ori_X2_hr_insulin_se)
+ori_BMI_ci <-  c(ori_BMI - 1.96 * ori_BMI_se, ori_BMI + 1.96 * ori_BMI_se)
+ori_Pedigree_ci <-  c(ori_Pedigree - 1.96 * ori_Pedigree_se, ori_Pedigree + 1.96 * ori_Pedigree_se)
+ori_Age_ci <-  c(ori_Age - 1.96 * ori_Age_se, ori_Age + 1.96 * ori_Age_se)
+ori_pregnant1_ci <-  c(ori_pregnant1 - 1.96 * ori_pregnant1_se, ori_pregnant1 + 1.96 * ori_pregnant1_se)
+ori_pregnant2_ci <-  c(ori_pregnant2 - 1.96 * ori_pregnant2_se, ori_pregnant2 + 1.96 * ori_pregnant2_se)
+ori_pregnant3_ci <-  c(ori_pregnant3_se - 1.96 * ori_pregnant3_se, ori_pregnant3_se + 1.96 * ori_pregnant3_se)
+ori_pregnant4_ci <-  c(ori_pregnant4_se - 1.96 * ori_pregnant4_se, ori_pregnant4_se + 1.96 * ori_pregnant4_se)
+
+#Confidence interval of original model
+ori_intercept_ci
+ori_glucose_conc_ci
+ori_Diastolic_BP_ci
+ori_Triceps_thk_ci
+ori_X2_hr_insulin_ci
+ori_BMI_ci
+ori_Pedigree_ci
+ori_Age_ci
+ori_pregnant1_ci
+ori_pregnant2_ci
+ori_pregnant3_ci
+ori_pregnant4_ci
+```
+
+
+
+We also checked the confidence interval of final models. The final model has only the significant variables, so zero is not included in each confidence interval.
+
+```{r}
+#Coefficient estimation of final model
+intercept <- summary(model4)$coefficients["(Intercept)","Estimate"]
+glucose_conc <- summary(model4)$coefficients["glucose_conc","Estimate"]
+X2_hr_insulin <-  summary(model4)$coefficients["X2_hr_insulin","Estimate"]
+BMI <-  summary(model4)$coefficients["BMI","Estimate"]
+Pedigree <-  summary(model4)$coefficients["Pedigree","Estimate"]
+X2_hr_insulin_Pedigree <-  summary(model4)$coefficients["Pedigree:X2_hr_insulin","Estimate"]
+X2_hr_insulin_Age <-  summary(model4)$coefficients["X2_hr_insulin:Age","Estimate"]
+
+#Standard error of final model coefficient
+intercept_se <- summary(model4)$coefficients["(Intercept)","Std. Error"]
+glucose_conc_se <- summary(model4)$coefficients["glucose_conc","Std. Error"]
+X2_hr_insulin_se <-  summary(model4)$coefficients["X2_hr_insulin","Std. Error"]
+BMI_se <-  summary(model4)$coefficients["BMI","Std. Error"]
+Pedigree_se <-  summary(model4)$coefficients["Pedigree","Std. Error"]
+X2_hr_insulin_Pedigree_se <-  summary(model4)$coefficients["Pedigree:X2_hr_insulin","Std. Error"]
+X2_hr_insulin_Age_se <-  summary(model4)$coefficients["X2_hr_insulin:Age","Std. Error"]
+
+#Calculating 95% of CI of original model
+intercept_ci <- c(intercept - 1.96 * intercept_se, intercept + 1.96 * intercept_se)
+glucose_conc_ci <- c(glucose_conc - 1.96 * glucose_conc_se, glucose_conc + 1.96 * glucose_conc_se)
+X2_hr_insulin_ci <-  c(X2_hr_insulin - 1.96 * X2_hr_insulin_se, X2_hr_insulin + 1.96 * X2_hr_insulin_se)
+BMI_ci <-  c(BMI - 1.96 * BMI_se, BMI + 1.96 * BMI_se)
+Pedigree_ci <-  c(Pedigree - 1.96 * Pedigree_se, Pedigree + 1.96 * Pedigree_se)
+X2_hr_insulin_Pedigree_ci <-  c(X2_hr_insulin_Pedigree - 1.96 * X2_hr_insulin_Pedigree_se, X2_hr_insulin_Pedigree + 1.96 * X2_hr_insulin_Pedigree_se)
+X2_hr_insulin_Age_ci <-  c(X2_hr_insulin_Age - 1.96 * X2_hr_insulin_Age_se, X2_hr_insulin_Age + 1.96 * X2_hr_insulin_Age_se)
+
+#Confidence interval of final model
+intercept_ci
+glucose_conc_ci
+X2_hr_insulin_ci
+BMI_ci
+Pedigree_ci
+X2_hr_insulin_Pedigree_ci
+X2_hr_insulin_Age_ci
+```
+
+
+### 10.4 Goodness-of-fit test
+
+
+1. McFadden’s Pseudo R-squared Test
+
+We obtained the $R^2$ of 4 candidate models.
+```{r}
+r1 <- (model1$null.deviance-model1$deviance)/model1$null.deviance
+r2 <-(model2$null.deviance-model2$deviance)/model2$null.deviance
+r3 <-(model3$null.deviance-model3$deviance)/model3$null.deviance
+r4 <-(model4$null.deviance-model4$deviance)/model4$null.deviance
+cat(r1,r2,r3,r4)
+```
+
+2. Deviance Test
+
+
+Residual deviance and corresponding $p$-value for 4 models.
+```{r}
+##aic
+cat(fit1$aic,fit2$aic,fit3$aic,fit4$aic,fit5$aic)
+
+#chi1 <- sum(residuals(model1, type = "pearson")^2) 
+deviance1 <- deviance(model1)
+deviance2 <- deviance(model2)
+deviance3 <- deviance(model3)
+deviance4 <- deviance(model4)
+cat("Deviance",deviance1,deviance2,deviance3,deviance4)
+
+
+p1 <- pchisq(fit1$deviance,fit1$df.residual, lower.tail = FALSE)
+p2 <- pchisq(fit2$deviance,fit2$df.residual, lower.tail = FALSE)
+p3 <- pchisq(fit3$deviance,fit3$df.residual, lower.tail = FALSE)
+p4 <- pchisq(fit4$deviance,fit4$df.residual, lower.tail = FALSE)
+cat("p-value",p1,p2,p3,p4)
+```
+
+
+### 10.5 Model Comparison Using AIC and BIC
+
+We obtained the AIC, relative likelihood $\exp((\mbox{AIC}_{min} - \mbox{AIC}_i)/2)$ and BIC values using R function.
+
+```{r}
+cat(fit1$aic,fit2$aic,fit3$aic,fit4$aic)#AIC
+
+rl1 <- exp((fit4$aic-fit1$aic)/2)#relative likelihood 
+rl2 <- exp((fit4$aic-fit2$aic)/2)
+rl3 <- exp((fit4$aic-fit3$aic)/2)
+cat(rl1,rl2,rl3)
+
+cat(BIC(model1),BIC(model2),BIC(model3),BIC(model4))
+```
+
+
+
+### 10.6 Plots of the final model
+
+Residuals vs Fitted plot and Q-Q plot.
+```{r}
+plot(model4, 1)
+plot(model4, 2)
+```
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
